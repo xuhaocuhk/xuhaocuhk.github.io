@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="styles.css">
+  <title>Computational LEGO Technic Design</title>
+  <meta name="description" content="We introduce a method to automatically compute LEGO Technic models from user input sketches, optionally with motion annotations. The generated models resemble the input sketches with coherently-connected bricks and simple layouts, while respecting the intended symmetry and mechanical properties expressed in the inputs">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta property="og:image" content="http://appsrv.cse.cuhk.edu.hk/~haoxu/projects/compute_technic/figures/representative_fig.jpg">
+  <meta property="og:title" content="Computational LEGO Technic Design. In SIGGRAPH Asia 2019.">
+  <script type="text/javascript">
+    google.load("jquery", "1.3.2");
+  </script>
+  <style type="text/css">
+    body {
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: 300;
+    font-size: 18px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1100px;
+    }
+
+    h1 {
+    font-weight: 300;
+    }
+
+    .disclaimerbox {
+      background-color: #eee;
+      border: 1px solid #eeeeee;
+      border-radius: 10px;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      padding: 20px;
+    }
+
+    video.header-vid {
+      height: 140px;
+      border: 1px solid black;
+      border-radius: 10px;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+    }
+
+    img.header-img {
+      height: 140px;
+      border: 1px solid black;
+      border-radius: 10px;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+    }
+
+    img.rounded {
+    border: 0px solid #eeeeee;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    margin-top: -35px;
+    }
+
+    a:link,
+    a:visited {
+      color: #1367a7;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #208799;
+    }
+
+    td.dl-link {
+      height: 160px;
+      text-align: center;
+      font-size: 22px;
+    }
+
+    .layered-paper-big {
+      /* modified from: http://css-tricks.com/snippets/css/layered-paper/ */
+      box-shadow:
+        0px 0px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The top layer shadow */
+        5px 5px 0 0px #fff,
+        /* The second layer */
+        5px 5px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The second layer shadow */
+        10px 10px 0 0px #fff,
+        /* The third layer */
+        10px 10px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The third layer shadow */
+        15px 15px 0 0px #fff,
+        /* The fourth layer */
+        15px 15px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The fourth layer shadow */
+        20px 20px 0 0px #fff,
+        /* The fifth layer */
+        20px 20px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The fifth layer shadow */
+        25px 25px 0 0px #fff,
+        /* The fifth layer */
+        25px 25px 1px 1px rgba(0, 0, 0, 0.35);
+      /* The fifth layer shadow */
+      margin-left: 10px;
+      margin-right: 45px;
+    }
+
+    .paper-big {
+      /* modified from: http://css-tricks.com/snippets/css/layered-paper/ */
+      box-shadow:
+        0px 0px 1px 1px rgba(0, 0, 0, 0.35);
+      /* The top layer shadow */
+      margin-left: 10px;
+      margin-right: 45px;
+    }
+
+    .layered-paper {
+      /* modified from: http://css-tricks.com/snippets/css/layered-paper/ */
+      box-shadow:
+        0px 0px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The top layer shadow */
+        5px 5px 0 0px #fff,
+        /* The second layer */
+        5px 5px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The second layer shadow */
+        10px 10px 0 0px #fff,
+        /* The third layer */
+        10px 10px 1px 1px rgba(0, 0, 0, 0.35);
+      /* The third layer shadow */
+      margin-top: 5px;
+      margin-left: 10px;
+      margin-right: 30px;
+      margin-bottom: 5px;
+    }
+
+    .vert-cent {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    hr {
+      border: 0;
+      height: 1px;
+      background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+    }
+  </style>
+  <title></title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+  <br>
+  <center>
+    <span style="font-size:34px">Computational LEGO Technic Design</span><br>
+    (Patent is Pending)
+    <br>
+    <table align="center" width="900px">
+      <tbody>
+        <tr>
+          <td align="center" width="150px">
+            <center>
+              <span style="font-size:22px"><a href="../../index.html">Hao Xu<sup>1</sup></a></span>
+            </center>
+          </td>
+          <td align="center" width="150px">
+            <center>
+              <span style="font-size:22px">Ka-Hei Hui<sup>1</sup></span>
+            </center>
+          </td>
+          <td align="center" width="200px">
+            <center>
+              <span style="font-size:22px"><a href="http://www.cse.cuhk.edu.hk/~cwfu/">Chi-Wing Fu<sup>1</sup></a></span>
+            </center>
+          </td>
+          <td align="center" width="200px">
+            <center>
+              <span style="font-size:22px"><a href="https://www.cs.sfu.ca/~haoz/">Hao Zhang<sup>2</sup></a></span>
+            </center>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table align="center" width="800px">
+      <tbody>
+        <tr>
+          <td align="center" width="50px"></td>
+          <td align="center" width="400px">
+            <center>
+              <img class="img-fluid d-block logo" height="50px" src="figures/cuhk_logo.png">
+            </center>
+          </td>
+          <td align="center" width="300px">
+            <center>
+              <img class="img-fluid d-block logo" height="50px" src="figures/sfu_logo.png">
+            </center>
+          </td>
+          <td align="center" width="50px"></td>
+        </tr>
+      </tbody>
+    </table>
+    <table align="center" width="800px">
+      <tbody>
+        <tr>
+          <td align="center" width="800px&quot;">
+            <center></center>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h3 class=""><span style="font-weight: normal;">SIGGRAPH Asia 2019</span></h3>
+<!--	<h3 class=""><span style="font-weight: normal; margin-top: -10px;">ACM Transaction on Graphics (SIGGRAPH Asia) 38, 6 (2019)</span></h3>
+-->
+
+
+    <br>
+    <table align="center" width="1100px">
+      <tbody>
+        <tr>
+          <td align="center" width="275px">
+            <center>
+              <span style="font-size:18px"></span>
+            </center>
+          </td>
+          <td align="center" width="275px">
+            <center>
+              <span style="font-size:18px"></span>
+            </center>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </center>
+  <br>
+  <table align="center" width="1100px">
+    <tbody>
+      <tr>
+        <td width="400px">
+          <center style="">
+            <img class="rounded" src="figures/teaser.png" width="1000px">
+            <span class="description" align="left">We introduce a fully automatic method to compute LEGO Technic designs (c &amp; d) that resemble user input sketches, which may be annotated with joint rotations (bottom-left). The designs are built by coherently-connected LEGO Technic bricks (b) that respect the symmetry and structural integrity of the models, as well as the dynamics implied at the specified joints, while aiming for minimalistic layouts.</span>
+            <br>
+          </center>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <hr>
+  <center>
+    <h1>Abstract</h1>
+  </center> We introduce a method to automatically compute LEGO Technic models from user input sketches, optionally with motion annotations. The generated models resemble the input sketches with coherently-connected bricks and simple layouts, while respecting the intended symmetry and mechanical properties expressed in the inputs. This complex computational assembly problem involves an immense search space, and a much richer brick set and connection mechanisms than regular LEGO. To address it, we first comprehensively model the brick properties and connection mechanisms, then formulate the construction requirements into an objective function, accounting for faithfulness to input sketch, model simplicity, and structural integrity. Next, we model the problem as a sketch cover, where we iteratively refine a random initial layout to cover the input sketch, while guided by the objective. At last, we provide a working system to analyze the balance, stress, and assemblability of the generated model. To evaluate our method, we compared it with four baselines and professional designs by a LEGO expert, demonstrating the superiority of our automatic designs. Also, we recruited several users to try our system, employed it to create models of varying forms and complexities, and physically built most of them. <br><br>
+  <hr>
+  <center>
+    <h1>Interactive Assembly Visualization of the AIRPLANE</h1>
+    <div style="max-width: 1500px; max-height: 1200px;">
+      <div style="width: 100%; height: 0px; position: relative; padding-bottom: 65.25%; overflow: hidden;">
+        <iframe src="assemb_plane_XR.651.html"
+                     allowfullscreen
+                     style="position: absolute; top: 0px; left: 0px; height: 100%; width: 1px; min-width: 100%; *width: 100%;"
+                     frameborder="0"
+                     scrolling="no">
+        </iframe>
+      </div>
+      <img align="center" class="img-fluid d-block" height="60px" src="figures/grey_arrow.gif">
+      <span class="swipe-word">Swipe me!</span>
+    </div>
+  </center>
+  <br>
+  <br>
+  <br>
+  <hr>
+  <center>
+    <h1>Paper and Supplementary Material</h1>
+  </center>
+  <table align="center" width="500" px="">
+    <tbody>
+      <tr>
+        <td><a href=""><img class="layered-paper-big" style="height:175px" src="./figures/paper.png"></a></td>
+        <td><span style="font-size:12pt">Hao Xu, Ka-Hei-Hui, Chi-Wing Fu, Hao Zhang</span><br>
+          <strong><span style="font-size:12pt">Computational LEGO Technic Design</span></strong><br>
+          <span style="font-size:12pt">In SIGGRAPH Asia 2019. <br>
+        <a href="./xu_siga19_paper.pdf">[Paper]</a> <a href="./xu_siga19_supp.pdf">[supp]</a>
+        <a>&lt;data & code: to release&gt;</a>
+      </span></td>
+      </tr>
+    </tbody>
+  </table>
+  <br><br>
+  <hr>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="" align="center">Video</h1>
+          <h3 class="" align="center">(Featured in <a href="https://www.youtube.com/watch?v=lVi9SdVGbJk&t=22s">SIGGRAPH Asia Technical Papers Trailer)</a></h3>
+          
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="embed-responsive embed-responsive-16by9" align="center">
+              <iframe width="875" height="492" src="https://www.youtube.com/embed/GgQ5hEir3wY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="" align="center">Bibtex</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <pre align="left">
+            @article {xu_siga19,
+                author = {Hao Xu and Ka Hei Hui and Chi-Wing Fu and Hao Zhang},
+                title = {Computational LEGO Technic Design},
+                journal = {ACM Trans. on Graphics (SIGGRAPH Asia)},
+                volume = 38,
+                number = 6,
+                year = {2019},
+                note = {Article no. 196},
+            } </pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <!--
+  		  <center><h1>Poster</h1></center><table align="center" width="200" px="">
+
+  			  <tbody><tr>
+				  <td><a href="https://richzhang.github.io/PerceptualSimilarity/index_files/poster_cvpr.pdf"><img class="paper-big" style="width:600px" src="./The Unreasonable Effectiveness of Deep Networks as a Perceptual Metric_files/poster_teaser.png"></a></td>
+              </tr>
+  		  </tbody></table>
+		  <br>
+
+		  <table align="center" width="600px">
+			  <tbody><tr>
+				  <td><span style="font-size:24pt"><center>
+				  	<a href="https://richzhang.github.io/PerceptualSimilarity/index_files/poster_cvpr.pdf">[PDF]</a>
+  	              </center></span></td>
+              </tr>
+  		  </tbody></table>
+
+  		  <br>
+		  <hr>
+		-->
+  <table align="center" width="1100px">
+    <tbody>
+      <tr>
+        <td width="400px">
+          <left>
+            <center>
+              <h1>Acknowledgments</h1>
+            </center>
+We thank all the anonymous reviewers for their comments and feedback. We also acknowledge help from <a href=https://liruihui.github.io/>Ruihui Li</a> for UI development, Shufang Wang and Tianwen Fu for model assembly, Chun Yu Liu for designing the models shown in Figure 21, and Wallace Lira and Johannes Merz for paper proofreading, and thank Nicolas Lespour and Will Gorman for their permission to show their works in Figures 2(b) &amp; (c), respectively. This work is supported in part by grants from the Research Grants Council of the Hong Kong Special Administrative Region (Project no. CUHK 14201918 and 14203416), NSERC grants (No. 611370), and gift funds from Adobe. </left>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <br>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12"></div>
+      </div>
+    </div>
+  </div>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12"></div>
+      </div>
+    </div>
+  </div>
+	<hr>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12"> </div>
+      </div>
+
+    </div>
+  </div>
+<center>
+  <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=0e1633&w=352&t=tt&d=hE0U7nd3XI2_J5HL3mefhgK1AKiIqDXWgZHG042o-XY&co=0b4975&ct=cdd4d9&cmo=3acc3a&cmn=ff5353'></script>
+</center>
+</body>
+
+</html>

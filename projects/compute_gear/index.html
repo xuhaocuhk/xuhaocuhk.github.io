@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="styles.css">
+  <title>Computational Design and Optimization of Non-Circular Gears</title>
+  <meta name="description" content="We present a computational tool to design non-circular gears that are fabricable and functional. Our key contributions include geometric and kinematic modeling of non-circular gears, formulating the design problem as a geometric optimization, a constructive approach to generate gears through manipulating transmission functions, and a coarse-to-fine search to explore the design parameters.">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!--
+  <meta property="og:image" content="http://appsrv.cse.cuhk.edu.hk/~haoxu/projects/compute_technic/figures/representative_fig.jpg">
+  -->
+  <meta property="og:title" content="Computational Design and Optimization of Non-Circular Gears">
+  <script type="text/javascript">
+    google.load("jquery", "1.3.2");
+  </script>
+  <style type="text/css">
+    body {
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: 300;
+    font-size: 18px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1100px;
+    }
+
+    h1 {
+    font-weight: 300;
+    }
+
+    .disclaimerbox {
+      background-color: #eee;
+      border: 1px solid #eeeeee;
+      border-radius: 10px;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      padding: 20px;
+    }
+
+    video.header-vid {
+      height: 140px;
+      border: 1px solid black;
+      border-radius: 10px;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+    }
+
+    img.header-img {
+      height: 140px;
+      border: 1px solid black;
+      border-radius: 10px;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+    }
+
+    img.rounded {
+    border: 0px solid #eeeeee;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    margin-top: -35px;
+    }
+
+    a:link,
+    a:visited {
+      color: #1367a7;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #208799;
+    }
+
+    td.dl-link {
+      height: 160px;
+      text-align: center;
+      font-size: 22px;
+    }
+
+    .layered-paper-big {
+      /* modified from: http://css-tricks.com/snippets/css/layered-paper/ */
+      box-shadow:
+        0px 0px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The top layer shadow */
+        5px 5px 0 0px #fff,
+        /* The second layer */
+        5px 5px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The second layer shadow */
+        10px 10px 0 0px #fff,
+        /* The third layer */
+        10px 10px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The third layer shadow */
+        15px 15px 0 0px #fff,
+        /* The fourth layer */
+        15px 15px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The fourth layer shadow */
+        20px 20px 0 0px #fff,
+        /* The fifth layer */
+        20px 20px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The fifth layer shadow */
+        25px 25px 0 0px #fff,
+        /* The fifth layer */
+        25px 25px 1px 1px rgba(0, 0, 0, 0.35);
+      /* The fifth layer shadow */
+      margin-left: 10px;
+      margin-right: 45px;
+    }
+
+    .paper-big {
+      /* modified from: http://css-tricks.com/snippets/css/layered-paper/ */
+      box-shadow:
+        0px 0px 1px 1px rgba(0, 0, 0, 0.35);
+      /* The top layer shadow */
+      margin-left: 10px;
+      margin-right: 45px;
+    }
+
+    .layered-paper {
+      /* modified from: http://css-tricks.com/snippets/css/layered-paper/ */
+      box-shadow:
+        0px 0px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The top layer shadow */
+        5px 5px 0 0px #fff,
+        /* The second layer */
+        5px 5px 1px 1px rgba(0, 0, 0, 0.35),
+        /* The second layer shadow */
+        10px 10px 0 0px #fff,
+        /* The third layer */
+        10px 10px 1px 1px rgba(0, 0, 0, 0.35);
+      /* The third layer shadow */
+      margin-top: 5px;
+      margin-left: 10px;
+      margin-right: 30px;
+      margin-bottom: 5px;
+    }
+
+    .vert-cent {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    hr {
+      border: 0;
+      height: 1px;
+      background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+    }
+
+    .container {
+      position: relative;
+    }
+
+    .topleft {
+      position: absolute;
+      top: 8px;
+      left: 16px;
+      font-size: 18px;
+    }
+  </style>
+  <title></title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+  <br>
+  <center>
+    <span style="font-size:34px">Computational Design and Optimization of Non-Circular Gears</span>
+    <br>
+    <table align="center" width="900px">
+      <tbody>
+        <tr>
+          <td align="center" width="150px">
+            <center>
+              <span style="font-size:22px"><a href="../../index.html">Hao Xu<sup>^1</sup></a></span>
+            </center>
+          </td>
+          <td align="center" width="150px">
+            <center>
+              <span style="font-size:20px">Tianwen Fu<sup>^1</sup></span>
+            </center>
+          </td>
+          <td align="center" width="150px">
+            <center>
+              <span style="font-size:22px"><a href="https://sutd-cgl.github.io/people.html">Peng Song</a><sup>2</sup></span>
+            </center>
+          </td>
+          <td align="center" width="200px">
+            <center>
+              <span style="font-size:22px">Mingjun Zhou<sup>1</sup></span>
+            </center>
+          </td>
+          <td align="center" width="200px">
+            <center>
+              <span style="font-size:22px"><a href="http://www.cse.cuhk.edu.hk/~cwfu/">Chi-Wing Fu<sup>1</sup></a></span>
+            </center>
+          </td>
+          <td align="center" width="200px">
+            <center>
+              <span style="font-size:22px"><a href="http://www0.cs.ucl.ac.uk/staff/n.mitra/">Niloy J. Mitra<sup>3,4</sup></a></span>
+            </center>
+          </td>
+        </tr>
+        <tr style="text-align: center; font-size: small; font-style: italic">
+          <td colspan="2">(^ joint 1st authors)</td>
+          <td colspan="4"></td>
+        </tr>
+      </tbody>
+    </table>
+    <table align="center" width="1050px">
+      <tbody>
+        <tr>
+          <td align="center" width="50px"></td>
+          <td align="center" width="250px" class="container">
+            <center>
+              <div class="topleft">1</div>
+              <img class="img-fluid d-block logo" height="55px" src="figures/cuhk_logo.jpg">
+            </center>
+          </td>
+          <td align="center" width="250px" class="container">
+            <center>
+             <div class="topleft">2</div>
+             <img class="img-fluid d-block logo" height="50px" src="figures/sutd_logo.png">
+            </center>
+          </td>
+          <td align="center" width="250px" class="container">
+            <center>
+              <div class="topleft">3</div>
+              <img class="img-fluid d-block logo" height="42px" src="figures/ucl-logo-brightred-example.png">
+            </center>
+          </td>
+          <td align="center" width="400px" class="container">
+            <center>
+              <div class="topleft">4 </div>
+              <img class="img-fluid d-block logo" height="42px" src="figures/adobe.png"> <small>Adobe Research London</small>
+            </center>
+          </td>
+          <td align="center" width="50px"></td>
+        </tr>
+      </tbody>
+    </table>
+    <table align="center" width="800px">
+      <tbody>
+        <tr>
+          <td align="center" width="800px&quot;">
+            <center></center>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h3 class=""><span style="font-weight: normal;">EUROGRAPHICS 2020</span></h3>
+<!--	<h3 class=""><span style="font-weight: normal; margin-top: -10px;">ACM Transaction on Graphics (SIGGRAPH Asia) 38, 6 (2019)</span></h3>
+-->
+
+
+    <br>
+    <table align="center" width="1100px">
+      <tbody>
+        <tr>
+          <td align="center" width="275px">
+            <center>
+              <span style="font-size:18px"></span>
+            </center>
+          </td>
+          <td align="center" width="275px">
+            <center>
+              <span style="font-size:18px"></span>
+            </center>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </center>
+  <br>
+  <table align="center" width="1100px">
+    <tbody>
+      <tr>
+        <td width="400px">
+          <center style="">
+            <img class="rounded" src="figures/teaser.png" width="1000px">
+            <span class="description" align="left">
+              We introduce an automatic method to design non-circular gears, which are optimized not only to resemble the input shapes (left) but also to transfer motion continuously and smoothly (middle). Further, our results can be 3D-printed and put to work in practice (right).
+            </span>
+            <br>
+          </center>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <hr>
+  <center>
+    <h1>Abstract</h1>
+  </center> We study a general form of gears known as non-circular gears. These gears can transfer periodic motion with variable speed
+  through their irregular shapes and eccentric rotation centers. To design functional non-circular gears is nontrivial, since the
+  gear pair must have compatible shape to keep in contact during motion and one gear can push the other to rotate under a
+  bounded torque that a motor can exert. We address the challenge by modeling the geometry, kinematics, and dynamics of noncircular gears, formulating the design problem as a shape optimization, and identifying necessary independent variables in
+  the optimization search. Taking a pair of 2D shapes as inputs, our method optimizes them into gears by locating the rotation
+  center on each shape, minimally modifying each shape to form the gear’s boundary, and constructing appropriate teeth for gear
+  meshing. Our optimized gears not only resemble the input shapes, but also require relatively small torque to drive the motion.
+  We demonstrate our method by generating a rich variety of non-circular gears from various inputs, and 3D printing several of
+  them to show the usability.
+  <br><br>
+  <hr>
+  <center>
+    <h1>Our Results</h1>
+    <img style="width: 100%" src="figures/results.png" />
+  </center>
+  <br>
+  <br>
+  <br>
+  <hr>
+  <center>
+    <h1>Paper</h1>
+  </center>
+  <table align="center" width="500" px="">
+    <tbody>
+      <tr>
+        <td><a href=""><img class="layered-paper-big" style="height:175px" src="./figures/paper.png"></a></td>
+        <td><span style="font-size:12pt">Hao Xu, Tianwen Fu, Peng Song, Mingjun Zhou, Niloy J. Mitra, and Chi-Wing Fu</span><br>
+          <strong><span style="font-size:12pt">Computational Design and Optimization of Non-Circular Gears</span></strong><br>
+          <span style="font-size:12pt">In EUROGRAPHICS 2020. <br>
+        <a href="./paper.pdf">[Paper]</a> 
+        <a href="https://github.com/xuhaocuhk/gears/">[Code]</a> 
+        <a href="models.zip">[Models for 3D Printing]</a> 
+      </span></td>
+      </tr>
+    </tbody>
+  </table>
+  <br><br>
+  <hr>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="" align="center">Video</h1>
+          <!-- <h3 class="" align="center">(Featured in <a href="https://www.youtube.com/watch?v=lVi9SdVGbJk&t=22s">SIGGRAPH Asia Technical Papers Trailer)</a></h3> -->
+          
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="embed-responsive embed-responsive-16by9" align="center">
+            <iframe width="875" height="492" src="https://www.youtube.com/embed/fhVbqKal2es" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> 
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <!--
+  <div class="py-5">
+    
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="" align="center">Bibtex</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <pre align="left">
+            @article {xu_siga19,
+                author = {Hao Xu and Ka Hei Hui and Chi-Wing Fu and Hao Zhang},
+                title = {Computational LEGO Technic Design},
+                journal = {ACM Trans. on Graphics (SIGGRAPH Asia)},
+                volume = 38,
+                number = 6,
+                year = {2019},
+                note = {Article no. 196},
+            } </pre>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  <hr>
+  -->
+
+  <table align="center" width="1100px">
+    <tbody>
+      <tr>
+        <td width="400px">
+          <left>
+            <center>
+              <h1>Acknowledgments</h1>
+            </center>
+            This work is supported by grants from the Research Grants Council of the Hong Kong Special Administrative Region (Project no. CUHK 14201918 and 14203416), SUTD Start-up Research Grant (Award Number: SRG ISTD 2019 148), ERC Starting Grant, ERC PoC Grant, Google Faculty Award, Royal Society Advanced Newton Fellowship, and gifts from Adobe. 
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <br>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12"></div>
+      </div>
+    </div>
+  </div>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12"></div>
+      </div>
+    </div>
+  </div>
+	<hr>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12"> </div>
+      </div>
+
+    </div>
+  </div>
+<center>
+  <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=293&t=tt&d=YWZ8PlsJs6aDxfYUjuUTVc5IvgZlFWZbPW_BoEzY3hw'></script>
+</center>
+</body>
+
+</html>
